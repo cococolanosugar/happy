@@ -709,6 +709,63 @@ describe('CodexAppServerClient sandbox integration', () => {
         await client.disconnect();
     });
 
+    it('lists models from the app-server catalog', async () => {
+        const requests: MockRpcMessage[] = [];
+        const proc = createMockProcess({
+            pid: 2701,
+            onRequest: (msg, stdout) => {
+                requests.push(msg);
+
+                if (msg.method === 'model/list' && msg.id != null) {
+                    setTimeout(() => {
+                        pushJsonLine(stdout, {
+                            id: msg.id,
+                            result: {
+                                data: [
+                                    {
+                                        id: 'deepseek-flash',
+                                        model: 'deepseek-flash',
+                                        displayName: 'DeepSeek-Flash',
+                                        description: 'frontier coder',
+                                        hidden: false,
+                                        supportedReasoningEfforts: [
+                                            { reasoningEffort: 'high', description: 'deep' },
+                                        ],
+                                        defaultReasoningEffort: 'high',
+                                    },
+                                    {
+                                        id: 'hidden-model',
+                                        model: 'hidden-model',
+                                        displayName: 'Hidden',
+                                        description: '',
+                                        hidden: true,
+                                        supportedReasoningEfforts: [],
+                                        defaultReasoningEffort: 'high',
+                                    },
+                                ],
+                                nextCursor: null,
+                            },
+                        });
+                    }, 0);
+                }
+            },
+        });
+        mockSpawn.mockImplementation(() => proc);
+
+        const { CodexAppServerClient } = await import('./codexAppServerClient');
+        const client = new CodexAppServerClient();
+
+        await client.connect();
+        const { data, nextCursor } = await client.listModels();
+
+        expect(requests.some((msg) => msg.method === 'model/list')).toBe(true);
+        expect(data.map((model) => model.id)).toEqual(['deepseek-flash', 'hidden-model']);
+        expect(data[0]?.displayName).toBe('DeepSeek-Flash');
+        expect(nextCursor).toBeNull();
+
+        await client.disconnect();
+    });
+
     it('clears active thread state so the next prompt starts a fresh thread', async () => {
         const requests: MockRpcMessage[] = [];
         let nextThreadNumber = 1;

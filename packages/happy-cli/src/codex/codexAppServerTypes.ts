@@ -319,3 +319,29 @@ export type JsonRpcResponse = {
     result?: unknown;
     error?: { code: number; message: string; data?: unknown };
 };
+
+// --- Models ---
+
+export type ReasoningEffortOption = {
+    reasoningEffort: ReasoningEffort;
+    description: string;
+};
+
+export type Model = {
+    id: string;
+    model: string;
+    displayName: string;
+    description: string;
+    hidden: boolean;
+    supportedReasoningEfforts: Array<ReasoningEffortOption>;
+    defaultReasoningEffort: ReasoningEffort;
+};
+
+export type ModelListResponse = {
+    data: Array<Model>;
+    /**
+     * Opaque cursor to pass to the next call to continue after the last item.
+     * If None, there are no more items to return.
+     */
+    nextCursor: string | null;
+};

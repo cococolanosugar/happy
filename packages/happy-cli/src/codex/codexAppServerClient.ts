@@ -46,6 +46,7 @@ import type {
     InputItem,
     ReasoningEffort,
     McpServerElicitationRequestResponse,
+    ModelListResponse,
 } from './codexAppServerTypes';
 import type { SandboxConfig } from '@/persistence';
 import { initializeSandbox, wrapForMcpTransport } from '@/sandbox/manager';
@@ -906,6 +907,17 @@ export class CodexAppServerClient {
             includeTurns: opts.includeTurns ?? true,
         };
         return await this.request('thread/read', params) as ReadConversationResponse;
+    }
+
+    /**
+     * Models this codex install can run, straight from its own catalog
+     * (`model_catalog_json`, defaulting to codex's bundled registry). Codex
+     * publishes provider-agnostic entries here, so a custom catalog — e.g. a
+     * third-party OpenAI-compatible provider — surfaces without us knowing
+     * anything about it.
+     */
+    async listModels(): Promise<ModelListResponse> {
+        return await this.request('model/list', {}) as ModelListResponse;
     }
 
     async rollbackThread(opts: {

@@ -2,6 +2,7 @@ import { render } from "ink";
 import React from "react";
 import { ApiClient } from '@/api/api';
 import { CodexAppServerClient } from './codexAppServerClient';
+import { publishCodexModelCatalog } from './codexModelCatalog';
 import type { ReasoningEffort } from './codexAppServerTypes';
 import { CodexPermissionHandler } from './utils/permissionHandler';
 import { ReasoningProcessor } from './utils/reasoningProcessor';
@@ -826,6 +827,7 @@ export async function runCodex(opts: {
     try {
         logger.debug('[codex]: client.connect begin');
         await client.connect();
+        await publishCodexModelCatalog({ client, session });
         logger.debug('[codex]: client.connect done');
 
         if (opts.resumeThreadId) {
